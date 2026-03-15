@@ -33,6 +33,8 @@ After prediction, the app shows:
 ├── app.py
 ├── README.md
 ├── requirements.txt
+├── runtime.txt
+├── waste_model.keras
 ├── waste_best_model_InceptionV3.h5
 └── Waste_Segregation_Complete_Project_A.ipynb
 ```
@@ -41,7 +43,9 @@ After prediction, the app shows:
 
 - `app.py`: Streamlit application for inference and deployment
 - `requirements.txt`: dependencies needed to run the app
-- `waste_best_model_InceptionV3.h5`: trained model currently detected by the app
+- `runtime.txt`: Python runtime for Streamlit Cloud
+- `waste_model.keras`: production model used by the deployed app
+- `waste_best_model_InceptionV3.h5`: legacy training artifact backup
 - `Waste_Segregation_Complete_Project_A.ipynb`: notebook used for training, evaluation, and experiments
 
 ## Project Highlights
@@ -50,7 +54,7 @@ After prediction, the app shows:
 - 6-class prediction pipeline
 - Transfer learning with pretrained CNN backbones
 - Deployable Streamlit frontend
-- Automatic model discovery from the project folder
+- Stable production loading from a single model path
 - Disposal recommendation logic for each class
 - Environmental impact dashboard
 
@@ -141,22 +145,11 @@ Training configuration used in the notebook:
 
 ## How Model Loading Works
 
-The app searches the project folder for common model names such as:
+The deployed app loads a single production model file:
 
-- `model.h5`
-- `waste_model.h5`
-- `best_model.h5`
-- `waste_best_model_MobileNetV2.h5`
-- `waste_best_model_ResNet50.h5`
-- `waste_best_model_VGG16.h5`
-- `waste_best_model_InceptionV3.h5`
-- `waste_finetuned_MobileNetV2.h5`
+- `waste_model.keras`
 
-Your current setup already includes:
-
-- `waste_best_model_InceptionV3.h5`
-
-So the app should load the model automatically.
+This avoids version drift from auto-discovery and makes deployment behavior deterministic.
 
 ## Local Run
 
@@ -248,6 +241,32 @@ If the `.h5` file is too large for GitHub or the deployment platform:
 - use Git LFS
 - host the model externally
 - or modify `app.py` to download the model at startup
+
+## Post-Deploy Test Checklist
+
+App URL:
+
+- `https://aayushagarwalcnn.streamlit.app`
+
+Smoke tests:
+
+- Home page loads without red error banner
+- Model loads and prediction works for one image
+- Class list shown: Cardboard, Glass, Metal, Paper, Plastic, Trash
+- Confidence score and disposal steps appear after prediction
+- Charts render correctly in Model Insights and Environmental Impact tabs
+
+Release evidence:
+
+- Add one screenshot in the repository after a successful prediction (for example `assets/app-result.png`)
+- Reference that screenshot in this README
+
+Known limits:
+
+- CPU-only runtime on Streamlit Cloud (GPU logs/warnings are expected)
+- Large model file increases cold-start time
+- Predictions depend on image quality, lighting, and framing
+- Classes outside the training set may be misclassified
 
 ## Suggested Next Steps
 

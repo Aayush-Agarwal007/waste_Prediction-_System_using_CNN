@@ -281,40 +281,23 @@ st.markdown(
 @st.cache_resource(show_spinner="Loading AI model…")
 def load_model():
     """
-    Try several common save locations for the .h5 model file.
-    Edit MODEL_PATHS to add your own path.
+    Load a single production model artifact.
     """
-    MODEL_PATHS = [
-        "waste_model.keras",
-        "model.keras",
-        "model.h5",
-        "waste_model.h5",
-        "best_model.h5",
-        "waste_best_model_MobileNetV2.h5",
-        "waste_best_model_ResNet50.h5",
-        "waste_best_model_VGG16.h5",
-        "waste_best_model_InceptionV3.h5",
-        "waste_finetuned_MobileNetV2.h5",
-    ]
-    last_error = None
-    for path in MODEL_PATHS:
-        if os.path.exists(path):
-            try:
-                # compile=False avoids deserializing optimizer/loss objects that often
-                # break when training and serving environments use different versions.
-                return (
-                    keras.models.load_model(
-                        path,
-                        compile=False,
-                        custom_objects={"Dense": CompatDense},
-                    ),
-                    path,
-                    None,
-                )
-            except Exception as e:
-                last_error = f"{type(e).__name__}: {e}"
-                continue
-    return None, None, last_error
+    model_path = "waste_model.keras"
+    if not os.path.exists(model_path):
+        return None, None, "FileNotFoundError: waste_model.keras not found"
+
+    try:
+        # compile=False avoids deserializing optimizer/loss objects that often
+        # break when training and serving environments use different versions.
+        model = keras.models.load_model(
+            model_path,
+            compile=False,
+            custom_objects={"Dense": CompatDense},
+        )
+        return model, model_path, None
+    except Exception as e:
+        return None, model_path, f"{type(e).__name__}: {e}"
 
 
 # ─────────────────────────────────────────────

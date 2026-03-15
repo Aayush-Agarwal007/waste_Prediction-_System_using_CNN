@@ -285,10 +285,17 @@ def load_model():
         "waste_best_model_InceptionV3.h5",
         "waste_finetuned_MobileNetV2.h5",
     ]
+    last_error = None
     for path in MODEL_PATHS:
         if os.path.exists(path):
-            return tf.keras.models.load_model(path), path
-    return None, None
+            try:
+                # compile=False avoids deserializing optimizer/loss objects that often
+                # break when training and serving environments use different versions.
+                return tf.keras.models.load_model(path, compile=False), path, None
+            except Exception as e:
+                last_error = f"{type(e).__name__}: {e}"
+                continue
+    return None, None, last_error
 
 
 # ─────────────────────────────────────────────
@@ -349,17 +356,22 @@ st.markdown(
 )
 
 # Load model
-model, model_path = load_model()
+model, model_path, model_error = load_model()
 
 if model is None:
-    st.error(
-        "**Model file not found.**  \n\n"
-        "Place your downloaded `.h5` model file in the same folder as `app.py` "
-        "and rename it to **`model.h5`** (or any name listed in `MODEL_PATHS` inside `app.py`).  \n\n"
-        "Common names the app will auto-detect:  \n"
-        "`model.h5` · `waste_model.h5` · `best_model.h5` · "
-        "`waste_best_model_MobileNetV2.h5` · `waste_finetuned_MobileNetV2.h5`"
-    )
+    if model_error:
+        st.error("**Model file found, but failed to load.**")
+        st.warning("Model file was found, but failed to load due to version mismatch.")
+        st.code(model_error)
+    else:
+        st.error(
+            "**Model file not found.**  \n\n"
+            "Place your downloaded `.h5` model file in the same folder as `app.py` "
+            "and rename it to **`model.h5`** (or any name listed in `MODEL_PATHS` inside `app.py`).  \n\n"
+            "Common names the app will auto-detect:  \n"
+            "`model.h5` · `waste_model.h5` · `best_model.h5` · "
+            "`waste_best_model_MobileNetV2.h5` · `waste_finetuned_MobileNetV2.h5`"
+        )
     st.stop()
 else:
     st.success(f"Model loaded: `{model_path}`", icon="✅")

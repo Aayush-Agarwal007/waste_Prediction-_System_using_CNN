@@ -357,7 +357,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(
         "<div style='font-size:0.8rem;opacity:0.7;'>Built with Streamlit · "
-        "BTech CSE Project</div>",
+        "Aayush Project</div>",
         unsafe_allow_html=True,
     )
 
@@ -701,6 +701,6 @@ with tab3:
 # ─────────────────────────────────────────────
 st.markdown(
     '<div class="footer-note">WasteAI · Built with TensorFlow & Streamlit · '
-    'BTech CSE Deep Learning Project · 2026</div>',
+    'Aayush Agarwal Deep Learning Project · 2026</div>',
     unsafe_allow_html=True,
 )

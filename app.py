@@ -281,23 +281,32 @@ st.markdown(
 @st.cache_resource(show_spinner="Loading AI model…")
 def load_model():
     """
-    Load a single production model artifact.
+    Load the best available production model artifact.
     """
-    model_path = "waste_model.keras"
-    if not os.path.exists(model_path):
-        return None, None, "FileNotFoundError: waste_model.keras not found"
+    candidate_paths = [
+        "waste_model.keras",
+        "waste_best_model_InceptionV3.h5",
+    ]
+    errors = []
 
-    try:
-        # compile=False avoids deserializing optimizer/loss objects that often
-        # break when training and serving environments use different versions.
-        model = keras.models.load_model(
-            model_path,
-            compile=False,
-            custom_objects={"Dense": CompatDense},
-        )
-        return model, model_path, None
-    except Exception as e:
-        return None, model_path, f"{type(e).__name__}: {e}"
+    for model_path in candidate_paths:
+        if not os.path.exists(model_path):
+            errors.append(f"{model_path}: not found")
+            continue
+
+        try:
+            # compile=False avoids deserializing optimizer/loss objects that often
+            # break when training and serving environments use different versions.
+            model = keras.models.load_model(
+                model_path,
+                compile=False,
+                custom_objects={"Dense": CompatDense},
+            )
+            return model, model_path, None
+        except Exception as e:
+            errors.append(f"{model_path}: {type(e).__name__}: {e}")
+
+    return None, None, " | ".join(errors)
 
 
 # ─────────────────────────────────────────────

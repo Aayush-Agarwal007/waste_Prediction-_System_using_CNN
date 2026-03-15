@@ -1,10 +1,19 @@
 import streamlit as st
 import keras
+from keras import layers
 import numpy as np
 from PIL import Image
 import plotly.graph_objects as go
 import plotly.express as px
 import os
+
+
+class CompatDense(layers.Dense):
+    """Backwards-compatible Dense for models saved with newer Keras configs."""
+
+    def __init__(self, *args, quantization_config=None, **kwargs):
+        # Older Keras builds do not know this kwarg; ignore it for inference.
+        super().__init__(*args, **kwargs)
 
 # ─────────────────────────────────────────────
 #  PAGE CONFIG  (must be first Streamlit call)
@@ -293,7 +302,15 @@ def load_model():
             try:
                 # compile=False avoids deserializing optimizer/loss objects that often
                 # break when training and serving environments use different versions.
-                return keras.models.load_model(path, compile=False), path, None
+                return (
+                    keras.models.load_model(
+                        path,
+                        compile=False,
+                        custom_objects={"Dense": CompatDense},
+                    ),
+                    path,
+                    None,
+                )
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"
                 continue

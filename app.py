@@ -1,5 +1,5 @@
 import streamlit as st
-import tensorflow as tf
+import keras
 import numpy as np
 from PIL import Image
 import plotly.graph_objects as go
@@ -276,6 +276,8 @@ def load_model():
     Edit MODEL_PATHS to add your own path.
     """
     MODEL_PATHS = [
+        "waste_model.keras",
+        "model.keras",
         "model.h5",
         "waste_model.h5",
         "best_model.h5",
@@ -291,7 +293,7 @@ def load_model():
             try:
                 # compile=False avoids deserializing optimizer/loss objects that often
                 # break when training and serving environments use different versions.
-                return tf.keras.models.load_model(path, compile=False), path, None
+                return keras.models.load_model(path, compile=False), path, None
             except Exception as e:
                 last_error = f"{type(e).__name__}: {e}"
                 continue
